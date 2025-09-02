@@ -10,18 +10,28 @@ cd ~/docker-ubuntu-desktop
 
 # Create docker-compose.yml
 cat > docker-compose.yml <<'EOF'
-version: "3.8"
 services:
-  ubuntu-desktop:
-    image: dorowu/ubuntu-desktop-lxde-vnc
-    container_name: ubuntu-desktop
-    ports:
-      - "6080:80"     # Web browser access
-      - "5900:5900"   # VNC access
+  windows:
+    image: dockurr/windows
+    container_name: windows
     environment:
-      USER: "docker"
-      PASSWORD: "docker"
-    shm_size: "2g"
+      VERSION: "10"
+      USERNAME: "MASTER"
+      PASSWORD: "admin@123"
+      RAM_SIZE: "4G"
+      CPU_CORES: "4"
+      DISK_SIZE: "400G"
+      DISK2_SIZE: "100G"
+    devices:
+      - /dev/kvm
+      - /dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "8006:8006"
+      - "3389:3389/tcp"
+      - "3389:3389/udp"
+    stop_grace_period: 2m
 EOF
 
 # Start the container
