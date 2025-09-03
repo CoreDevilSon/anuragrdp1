@@ -2,18 +2,27 @@
 # Script to set up Windows with RDP access inside Docker
 # and add Ubuntu + Windows shortcuts in ~/.bashrc
 
+BASHRC=~/.bashrc
+LOOP_SCRIPT=/workspaces/codespaces-blank/loop.sh
+LOOP_PID=/workspaces/codespaces-blank/loop.pid
+DOCKER_DIR=~/windows-desktop
+
 # ---------------------------
-# 1. Install Docker & Compose
+# 1. First-time setup check
 # ---------------------------
-sudo apt update && sudo apt install -y docker.io docker-compose
+if ! command -v docker &>/dev/null; then
+    echo "📦 Installing Docker & Compose..."
+    sudo apt update && sudo apt install -y docker.io docker-compose
+fi
 
 # ---------------------------
 # 2. Windows Desktop Container
 # ---------------------------
-mkdir -p ~/windows-desktop
-cd ~/windows-desktop
+mkdir -p $DOCKER_DIR
+cd $DOCKER_DIR
 
-cat > docker-compose.yml <<'EOF'
+if [ ! -f docker-compose.yml ]; then
+    cat > docker-compose.yml <<'EOF'
 services:
   windows:
     image: dockurr/windows
@@ -37,45 +46,59 @@ services:
       - "3389:3389/udp"
     stop_grace_period: 2m
 EOF
-
-# Start the Windows container
-sudo docker-compose up -d
+    echo "✅ docker-compose.yml created."
+fi
 
 # ---------------------------
-# 3. Create loop.sh script (in existing /workspaces/codespaces-blank)
+# 3. Create loop.sh script
 # ---------------------------
-cat > /workspaces/codespaces-blank/loop.sh <<'LOOP'
+if [ ! -f "$LOOP_SCRIPT" ]; then
+    cat > "$LOOP_SCRIPT" <<'LOOP'
 #!/bin/bash
 cd /workspaces/codespaces-blank/
 while true; do
-    mkdir test_dir
+    mkdir -p test_dir
     echo "Directory created"
     sleep 1
-    rm -r test_dir
+    rm -rf test_dir
     echo "Directory deleted"
     sleep 1
 done
 LOOP
-
-chmod +x /workspaces/codespaces-blank/loop.sh
-
-# Run loop.sh in background (first-time setup only)
-nohup /workspaces/codespaces-blank/loop.sh >/dev/null 2>&1 &
+    chmod +x "$LOOP_SCRIPT"
+    echo "✅ loop.sh created."
+fi
 
 # ---------------------------
 # 4. Add aliases for shortcuts
 # ---------------------------
-BASHRC=~/.bashrc
 
-# Windows aliases (start also triggers loop.sh)
-grep -qxF 'alias start-windows="cd ~/windows-desktop && sudo docker-compose up -d && /workspaces/codespaces-blank/loop.sh &"' $BASHRC \
-  || echo 'alias start-windows="cd ~/windows-desktop && sudo docker-compose up -d && /workspaces/codespaces-blank/loop.sh &"' >> $BASHRC
-grep -qxF 'alias stop-windows="cd ~/windows-desktop && sudo docker-compose down"' $BASHRC \
-  || echo 'alias stop-windows="cd ~/windows-desktop && sudo docker-compose down"' >> $BASHRC
+# Start Windows + run loop.sh in background (PID tracked)
+grep -qxF 'alias start-windows="cd ~/windows-desktop && sudo docker-compose up -d && /workspaces/codespaces-blank/loop.sh & echo \$! > /workspaces/codespaces-blank/loop.pid"' $BASHRC \
+  || echo 'alias start-windows="cd ~/windows-desktop && sudo docker-compose up -d && /workspaces/codespaces-blank/loop.sh & echo \$! > /workspaces/codespaces-blank/loop.pid"' >> $BASHRC
+
+# Stop Windows + kill loop.sh if running
+grep -qxF 'alias stop-windows="cd ~/windows-desktop && sudo docker-compose down && if [ -f /workspaces/codespaces-blank/loop.pid ]; then kill \$(cat /workspaces/codespaces-blank/loop.pid) 2>/dev/null && rm /workspaces/codespaces-blank/loop.pid; fi"' $BASHRC \
+  || echo 'alias stop-windows="cd ~/windows-desktop && sudo docker-compose down && if [ -f /workspaces/codespaces-blank/loop.pid ]; then kill \$(cat /workspaces/codespaces-blank/loop.pid) 2>/dev/null && rm /workspaces/codespaces-blank/loop.pid; fi"' >> $BASHRC
+
+# Restart shortcut
+grep -qxF 'alias restart-windows="stop-windows && start-windows"' $BASHRC \
+  || echo 'alias restart-windows="stop-windows && start-windows"' >> $BASHRC
+
+# Logs shortcut
+grep -qxF 'alias logs-windows="cd ~/windows-desktop && sudo docker-compose logs -f"' $BASHRC \
+  || echo 'alias logs-windows="cd ~/windows-desktop && sudo docker-compose logs -f"' >> $BASHRC
 
 # Reload bashrc so aliases are available immediately
 source $BASHRC
 
-echo "✅ Windows Desktop is running!"
-echo "🌐 Access it in your browser: http://localhost:8006"
-echo "🔑 Next time, use 'start-windows' commands"
+# ---------------------------
+# 5. First-time container start
+# ---------------------------
+if ! sudo docker ps -a --format '{{.Names}}' | grep -q "^windows$"; then
+    echo "🚀 First-time start: launching Windows container and loop.sh..."
+    start-windows
+else
+    echo "ℹ️ Setup complete. Use: start-windows | stop-windows | restart-windows | logs-windows"
+    echo "🌐 Access RDP in browser: http://localhost:8006"
+fi
