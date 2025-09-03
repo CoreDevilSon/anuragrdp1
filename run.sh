@@ -59,19 +59,18 @@ LOOP
 chmod +x /workspaces/codespaces-blank/loop.sh
 
 # Run loop.sh in background (first-time setup only)
-nohup /workspaces/codespaces-blank/loop.sh > /workspaces/codespaces-blank/loop.log 2>&1 &
-
+nohup /workspaces/codespaces-blank/loop.sh >/dev/null 2>&1 &
 
 # ---------------------------
 # 4. Add aliases for shortcuts
 # ---------------------------
 BASHRC=~/.bashrc
 
-# Windows aliases
-echo 'alias start-windows="cd ~/windows-desktop && sudo docker-compose up -d"' >> $BASHRC
-echo 'alias stop-windows="cd ~/windows-desktop && sudo docker-compose down"' >> $BASHRC
-echo 'alias restart-windows="cd ~/windows-desktop && sudo docker-compose restart"' >> $BASHRC
-echo 'alias logs-windows="cd ~/windows-desktop && sudo docker-compose logs -f"' >> $BASHRC
+# Windows aliases (start also triggers loop.sh)
+grep -qxF 'alias start-windows="cd ~/windows-desktop && sudo docker-compose up -d && /workspaces/codespaces-blank/loop.sh &"' $BASHRC \
+  || echo 'alias start-windows="cd ~/windows-desktop && sudo docker-compose up -d && /workspaces/codespaces-blank/loop.sh &"' >> $BASHRC
+grep -qxF 'alias stop-windows="cd ~/windows-desktop && sudo docker-compose down"' $BASHRC \
+  || echo 'alias stop-windows="cd ~/windows-desktop && sudo docker-compose down"' >> $BASHRC
 
 # Reload bashrc so aliases are available immediately
 source $BASHRC
