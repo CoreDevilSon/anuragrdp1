@@ -5,7 +5,7 @@
 BASHRC=~/.bashrc
 LOOP_SCRIPT=/workspaces/codespaces-blank/loop.sh
 LOOP_PID=/workspaces/codespaces-blank/loop.pid
-DOCKER_DIR=~/workspaces/codespaces-blank/windows-desktop
+DOCKER_DIR=/workspaces/codespaces-blank/windows-desktop
 
 # ---------------------------
 # 1. First-time setup check
