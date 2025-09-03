@@ -1,14 +1,18 @@
 #!/bin/bash
 # Script to set up Windows with RDP access inside Docker
+# and add Ubuntu + Windows shortcuts in ~/.bashrc
 
-# Update and install docker + docker-compose
+# ---------------------------
+# 1. Install Docker & Compose
+# ---------------------------
 sudo apt update && sudo apt install -y docker.io docker-compose
 
-# Make a project folder
+# ---------------------------
+# 2. Windows Desktop Container
+# ---------------------------
 mkdir -p ~/windows-desktop
 cd ~/windows-desktop
 
-# Create docker-compose.yml
 cat > docker-compose.yml <<'EOF'
 services:
   windows:
@@ -34,9 +38,44 @@ services:
     stop_grace_period: 2m
 EOF
 
-# Start the container
+# Start the Windows container
 sudo docker-compose up -d
+
+# ---------------------------
+# 3. Create loop.sh script (in existing /workspaces/codespaces-blank)
+# ---------------------------
+cat > /workspaces/codespaces-blank/loop.sh <<'LOOP'
+#!/bin/bash
+while true; do
+    mkdir test_dir
+    echo "Directory created"
+    sleep 1
+    rm -r test_dir
+    echo "Directory deleted"
+    sleep 1
+done
+LOOP
+
+chmod +x /workspaces/codespaces-blank/loop.sh
+
+# Run loop.sh in background (first-time setup only)
+nohup /workspaces/codespaces-blank/loop.sh > /workspaces/codespaces-blank/loop.log 2>&1 &
+
+
+# ---------------------------
+# 4. Add aliases for shortcuts
+# ---------------------------
+BASHRC=~/.bashrc
+
+# Windows aliases
+echo 'alias start-windows="cd ~/windows-desktop && sudo docker-compose up -d"' >> $BASHRC
+echo 'alias stop-windows="cd ~/windows-desktop && sudo docker-compose down"' >> $BASHRC
+echo 'alias restart-windows="cd ~/windows-desktop && sudo docker-compose restart"' >> $BASHRC
+echo 'alias logs-windows="cd ~/windows-desktop && sudo docker-compose logs -f"' >> $BASHRC
+
+# Reload bashrc so aliases are available immediately
+source $BASHRC
 
 echo "✅ Windows Desktop is running!"
 echo "🌐 Access it in your browser: http://localhost:8006"
-echo "🔑 From next time execute windows-start command"
+echo "🔑 Next time, use 'start-windows' commands"
