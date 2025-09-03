@@ -1,12 +1,12 @@
 #!/bin/bash
-# Script to set up Ubuntu Desktop with RDP access inside Docker
+# Script to set up Windows with RDP access inside Docker
 
 # Update and install docker + docker-compose
 sudo apt update && sudo apt install -y docker.io docker-compose
 
 # Make a project folder
-mkdir -p ~/docker-ubuntu-desktop
-cd ~/docker-ubuntu-desktop
+mkdir -p ~/windows-desktop
+cd ~/windows-desktop
 
 # Create docker-compose.yml
 cat > docker-compose.yml <<'EOF'
@@ -37,6 +37,6 @@ EOF
 # Start the container
 sudo docker-compose up -d
 
-echo "✅ Ubuntu Desktop is running!"
-echo "🌐 Access it in your browser: http://localhost:6080"
-echo "🔑 VNC access: localhost:5900 (password: docker)"
+echo "✅ Windows Desktop is running!"
+echo "🌐 Access it in your browser: http://localhost:8006"
+echo "🔑 From next time execute windows-start command"
