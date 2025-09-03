@@ -74,20 +74,20 @@ fi
 # ---------------------------
 
 # Start Windows + run loop.sh in background (PID tracked)
-grep -qxF 'alias start-windows="cd ~/windows-desktop && sudo docker-compose up -d && /workspaces/codespaces-blank/loop.sh & echo \$! > /workspaces/codespaces-blank/loop.pid"' $BASHRC \
-  || echo 'alias start-windows="cd ~/windows-desktop && sudo docker-compose up -d && /workspaces/codespaces-blank/loop.sh & echo \$! > /workspaces/codespaces-blank/loop.pid"' >> $BASHRC
+grep -qxF 'alias start-windows="sudo docker-compose -f ~/windows-desktop/docker-compose.yml up -d && /workspaces/codespaces-blank/loop.sh & echo \$! > /workspaces/codespaces-blank/loop.pid"' $BASHRC \
+  || echo 'alias start-windows="sudo docker-compose -f ~/windows-desktop/docker-compose.yml up -d && /workspaces/codespaces-blank/loop.sh & echo \$! > /workspaces/codespaces-blank/loop.pid"' >> $BASHRC
 
 # Stop Windows + kill loop.sh if running
-grep -qxF 'alias stop-windows="cd ~/windows-desktop && sudo docker-compose down && if [ -f /workspaces/codespaces-blank/loop.pid ]; then kill \$(cat /workspaces/codespaces-blank/loop.pid) 2>/dev/null && rm /workspaces/codespaces-blank/loop.pid; fi"' $BASHRC \
-  || echo 'alias stop-windows="cd ~/windows-desktop && sudo docker-compose down && if [ -f /workspaces/codespaces-blank/loop.pid ]; then kill \$(cat /workspaces/codespaces-blank/loop.pid) 2>/dev/null && rm /workspaces/codespaces-blank/loop.pid; fi"' >> $BASHRC
+grep -qxF 'alias stop-windows="sudo docker-compose -f ~/windows-desktop/docker-compose.yml down && if [ -f /workspaces/codespaces-blank/loop.pid ]; then kill \$(cat /workspaces/codespaces-blank/loop.pid) 2>/dev/null && rm /workspaces/codespaces-blank/loop.pid; fi"' $BASHRC \
+  || echo 'alias stop-windows="sudo docker-compose -f ~/windows-desktop/docker-compose.yml down && if [ -f /workspaces/codespaces-blank/loop.pid ]; then kill \$(cat /workspaces/codespaces-blank/loop.pid) 2>/dev/null && rm /workspaces/codespaces-blank/loop.pid; fi"' >> $BASHRC
 
 # Restart shortcut
 grep -qxF 'alias restart-windows="stop-windows && start-windows"' $BASHRC \
   || echo 'alias restart-windows="stop-windows && start-windows"' >> $BASHRC
 
 # Logs shortcut
-grep -qxF 'alias logs-windows="cd ~/windows-desktop && sudo docker-compose logs -f"' $BASHRC \
-  || echo 'alias logs-windows="cd ~/windows-desktop && sudo docker-compose logs -f"' >> $BASHRC
+grep -qxF 'alias logs-windows="sudo docker-compose -f ~/windows-desktop/docker-compose.yml logs -f"' $BASHRC \
+  || echo 'alias logs-windows="sudo docker-compose -f ~/windows-desktop/docker-compose.yml logs -f"' >> $BASHRC
 
 # Reload bashrc so aliases are available immediately
 source $BASHRC
