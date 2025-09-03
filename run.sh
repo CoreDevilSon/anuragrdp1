@@ -46,6 +46,7 @@ sudo docker-compose up -d
 # ---------------------------
 cat > /workspaces/codespaces-blank/loop.sh <<'LOOP'
 #!/bin/bash
+cd /workspaces/codespaces-blank/
 while true; do
     mkdir test_dir
     echo "Directory created"
